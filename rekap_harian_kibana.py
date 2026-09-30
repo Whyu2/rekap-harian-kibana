@@ -1,7 +1,19 @@
+from datetime import datetime
 import glob
 import os
 import zipfile
 import pandas as pd
+
+# 1. Format string bulan dan tahun saat ini
+MONTH_YEAR_STR = datetime.now().strftime('%B_%Y').lower()  # contoh: "september_2026"
+DATE_MONTH_YEAR_STR = datetime.now().strftime('%b %Y')  # contoh: "Sep 2026"
+
+# 2. Folder output utama & subfolder khusus bulan saat ini
+BASE_OUTPUT_DIR = 'output'
+MONTH_OUTPUT_DIR = os.path.join(BASE_OUTPUT_DIR, MONTH_YEAR_STR)
+
+# Otomatis buat folder jika belum ada
+os.makedirs(MONTH_OUTPUT_DIR, exist_ok=True)
 
 
 def clean_num(val):
@@ -25,7 +37,9 @@ def process_dashboard3(zip_file_path):
   )
   print(f'==========================================')
 
-  extract_folder = 'extracted_d3'
+  extract_folder = os.path.join(
+      MONTH_OUTPUT_DIR, f'extracted_d3_{MONTH_YEAR_STR}'
+  )
   with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
     zip_ref.extractall(extract_folder)
 
@@ -73,12 +87,12 @@ def process_dashboard3(zip_file_path):
   ]
   rows_d3 = []
 
-  # Menampung nilai harian khusus Modul Administration
   admin_avg_list = []
   admin_p90_list = []
 
   for day in sorted(data_by_date.keys()):
-    date_str = f'{day:02d} Sep 2026'
+    # DIBUAT DINAMIS SESUAI BULAN/TAHUN
+    date_str = f'{day:02d} {DATE_MONTH_YEAR_STR}'
     day_files = data_by_date[day]
 
     row_data = {'Tanggal': date_str}
@@ -107,7 +121,6 @@ def process_dashboard3(zip_file_path):
         row_data[f'{dom} Avg (ms)'] = avg_val
         row_data[f'{dom} P90 (ms)'] = p90_val
 
-        # Simpan nilai khusus modul Administration
         if dom == 'Administration':
           if avg_val > 0:
             admin_avg_list.append(avg_val)
@@ -120,10 +133,11 @@ def process_dashboard3(zip_file_path):
     rows_d3.append(row_data)
 
   df_out3 = pd.DataFrame(rows_d3)
-  excel_d3 = 'Hasil_Rekap_Dashboard_3_Performance.xlsx'
+
+  file_name = f'Hasil_Rekap_Dashboard_3_Performance_{MONTH_YEAR_STR}.xlsx'
+  excel_d3 = os.path.join(MONTH_OUTPUT_DIR, file_name)
   df_out3.to_excel(excel_d3, index=False)
 
-  # Hitung Rata-rata Sederhana Khusus Modul Administration (Abaikan nilai 0)
   avg_admin_all = (
       int(round(sum(admin_avg_list) / len(admin_avg_list)))
       if admin_avg_list
@@ -136,10 +150,10 @@ def process_dashboard3(zip_file_path):
   )
 
   summary_d3_text = (
-      'CMD Performance Dashboard: Pemantauan latensi pada Modul Administration (sebagai modul utama paling aktif)'
-      f' mencatatkan Rata-rata Latency sebesar {avg_admin_all} ms dengan batas'
-      ' kenyamanan mayoritas pengguna (90th Percentile / P90) berada pada angka'
-      f' {p90_admin_all} ms.'
+      'CMD Performance Dashboard: Pemantauan latensi pada Modul Administration'
+      ' (sebagai modul utama paling aktif) mencatatkan Rata-rata Latency'
+      f' sebesar {avg_admin_all} ms dengan batas kenyamanan mayoritas pengguna'
+      f' (90th Percentile / P90) berada pada angka {p90_admin_all} ms.'
   )
 
   print(f'✅ File Excel Dashboard 3 berhasil dibuat: {excel_d3}')
@@ -160,7 +174,9 @@ def process_dashboard2_summary(zip_file_path):
   )
   print(f'==========================================')
 
-  extract_folder = 'extracted_d2'
+  extract_folder = os.path.join(
+      MONTH_OUTPUT_DIR, f'extracted_d2_{MONTH_YEAR_STR}'
+  )
   with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
     zip_ref.extractall(extract_folder)
 
@@ -197,7 +213,8 @@ def process_dashboard2_summary(zip_file_path):
   total_rt_weighted_sum = 0
 
   for day in sorted(data_by_date.keys()):
-    date_str = f'{day:02d} Sep 2026'
+    # DIBUAT DINAMIS SESUAI BULAN/TAHUN
+    date_str = f'{day:02d} {DATE_MONTH_YEAR_STR}'
     d_files = data_by_date[day]
 
     tot_trx, succ_trx, err_trx, w_rt = 0, 0, 0, 0
@@ -278,10 +295,11 @@ def process_dashboard2_summary(zip_file_path):
     })
 
   df_out2 = pd.DataFrame(rows_d2)
-  excel_d2 = 'Hasil_Rekap_Dashboard_2_Monitoring.xlsx'
+
+  file_name = f'Hasil_Rekap_Dashboard_2_Monitoring_{MONTH_YEAR_STR}.xlsx'
+  excel_d2 = os.path.join(MONTH_OUTPUT_DIR, file_name)
   df_out2.to_excel(excel_d2, index=False)
 
-  # Hitung Nilai Akumulasi Keseluruhan Periode
   overall_sr = (
       (grand_succ_trx / grand_tot_trx * 100) if grand_tot_trx > 0 else 0.0
   )
