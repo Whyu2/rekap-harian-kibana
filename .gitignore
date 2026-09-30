@@ -1,0 +1,15 @@
+# 1. Abaikan semua file dan folder secara default
+/*
+
+# 2. Perkecualian (TETAP TRACK) untuk file script & README
+!rekap_harian_kibana.py
+!README.MD
+!.gitignore
+
+# Jika nantinya ada file .py atau .md baru yang ingin dilacak secara umum:
+!*.py
+!*.md
+
+# 3. Tetap abaikan cache Python (meskipun berakhiran .pyc / folder __pycache__)
+__pycache__/
+*.pyc
